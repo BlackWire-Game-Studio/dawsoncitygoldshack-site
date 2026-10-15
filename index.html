@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dawson City Gold Shack · Yukon Gold Claims in 3D</title>
+<meta name="description" content="Fly over 103 placer gold claims on the McQuesten River, Yukon, in 3D. Wildcat 1 &amp; 2 available for lease.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0d1114">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dawsoncitygoldshack.com/">
+<meta property="og:title" content="Dawson City Gold Shack · Yukon Gold Claims in 3D">
+<meta property="og:description" content="Fly over 103 placer gold claims on the McQuesten River, Yukon. Wildcat 1 &amp; 2 available for lease.">
+<meta property="og:image" content="https://dawsoncitygoldshack.com/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c" aria-label="3D map of the claims"></canvas>
+<div id="labels"></div>
+<div id="tip" hidden></div>
+
+<header id="brand">
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 20l7-12 4 6 3-4 6 10z"/><circle cx="17" cy="6" r="2.2"/></svg></div>
+  <div><b>Dawson City Gold Shack</b><span>Yukon placer gold claims</span></div>
+</header>
+
+<div id="minimap" title="Tap the small map to jump there">
+  <canvas></canvas>
+  <span class="north">N</span>
+</div>
+
+<div id="zoom" role="group" aria-label="Move the view">
+  <button class="btn sq" data-act="in" aria-label="Zoom in"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="btn sq" data-act="out" aria-label="Zoom out"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+  <button class="btn sq" data-act="left" aria-label="Turn left"><svg viewBox="0 0 24 24"><path d="M9 7H4V2M4.6 7A9 9 0 1 1 3 13"/></svg></button>
+  <button class="btn sq" data-act="right" aria-label="Turn right"><svg viewBox="0 0 24 24"><path d="M15 7h5V2M19.4 7A9 9 0 1 0 21 13"/></svg></button>
+</div>
+
+<nav id="dock" aria-label="Main buttons">
+  <button class="btn" data-act="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5"/></svg><span>Whole area</span></button>
+  <button class="btn gold" data-act="package"><svg viewBox="0 0 24 24" class="fill"><path d="M12 2l3 6.9 7.5.7-5.7 5 1.7 7.4L12 18l-6.5 4 1.7-7.4-5.7-5 7.5-.7z"/></svg><span>Wildcat · for lease</span></button>
+  <button class="btn" data-act="groups"><svg viewBox="0 0 24 24"><path d="M12 2l10 5-10 5L2 7zM2 12l10 5 10-5M2 17l10 5 10-5"/></svg><span>All claims</span></button>
+  <button class="btn" data-act="tour"><svg viewBox="0 0 24 24"><path d="M2 16l20-8-8 14-2-6z"/></svg><span>Tour</span></button>
+  <button class="btn" data-act="spin" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 3v4h-4"/></svg><span>Spin</span></button>
+  <button class="btn" data-act="help"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M9.5 9.3a2.6 2.6 0 1 1 3.6 2.4c-.7.3-1.1.9-1.1 1.6v.7M12 17.2v.3"/></svg><span>Help</span></button>
+</nav>
+
+<aside id="card" hidden aria-live="polite"></aside>
+
+<div id="groups" class="sheet" hidden>
+  <div class="sheet-head"><h2>All claim groups</h2><button class="btn sq ghost" data-close aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div id="group-list"></div>
+</div>
+
+<div id="caption" hidden>
+  <div class="cap-step"></div>
+  <p class="cap-text"></p>
+  <div class="cap-btns">
+    <button class="btn gold" data-cap="next"><span>Next</span><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button class="btn ghost" data-cap="end"><span>End tour</span></button>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<section id="intro" hidden>
+  <div class="intro-in">
+    <p class="kicker">Dawson City Gold Shack · Yukon, Canada</p>
+    <h1>Yukon <em>Gold</em> Claims</h1>
+    <p class="lead">Fly over 103 placer gold claims on the McQuesten River — real ground, real photos, real government records.</p>
+    <div class="intro-btns">
+      <button class="btn gold xl" data-intro="tour"><svg viewBox="0 0 24 24" class="fill"><path d="M8 5v14l11-7z"/></svg><span>Take the tour</span></button>
+      <button class="btn xl" data-intro="explore"><span>Explore on my own</span></button>
+    </div>
+  </div>
+</section>
+
+<div id="help" class="modal" hidden role="dialog" aria-label="How to move around">
+  <div class="modal-in">
+    <h2>How to move around</h2>
+    <ul class="help-list">
+      <li><b>Move:</b> drag with one finger or the mouse.</li>
+      <li><b>Zoom:</b> pinch, scroll the mouse wheel, or press <b>+</b> and <b>−</b>.</li>
+      <li><b>Turn:</b> twist two fingers, drag with the right mouse button, or press the turn arrows.</li>
+      <li><b>See a claim:</b> tap any coloured area or any name tag.</li>
+      <li><b>Lost?</b> Press <b>Whole area</b> to come back. You can't break anything.</li>
+    </ul>
+    <button class="btn gold xl" data-close>Got it</button>
+  </div>
+</div>
+
+<div id="contact" class="modal" hidden role="dialog" aria-label="I'm interested">
+  <div class="modal-in">
+    <h2 id="contact-title">I'm interested</h2>
+    <p>Leave your name and phone number and we'll call you back. No obligation.</p>
+    <form id="contact-form">
+      <label>Your name<input name="name" autocomplete="name" required></label>
+      <label>Phone number<input name="phone" type="tel" autocomplete="tel" required></label>
+      <label>Email (optional)<input name="email" type="email" autocomplete="email"></label>
+      <label>About<input name="about" readonly></label>
+      <div class="row"><button class="btn gold xl" type="submit">Send</button><button class="btn xl ghost" type="button" data-close>Cancel</button></div>
+    </form>
+    <p class="note" id="contact-note" hidden>Thank you! This is a preview, so the form isn't connected yet. When the site goes live it will go straight to the owner.</p>
+  </div>
+</div>
+
+<footer id="credit"><span class="long">Aerial photos (2023), elevation and claim records: Government of Yukon · records checked <span id="checked"></span> · Preview, not a legal document</span><span class="short">Photos &amp; records: Government of Yukon · Preview</span></footer>
+
+<div id="loading">
+  <div class="load-in">
+    <div class="logo big" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 20l7-12 4 6 3-4 6 10z"/><circle cx="17" cy="6" r="2.2"/></svg></div>
+    <p>Loading the Yukon…</p>
+    <div class="bar"><i></i></div>
+  </div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
